@@ -1,0 +1,18 @@
+FROM maven:3.6.2-jdk-11 as builder
+COPY src /usr/src/app/src
+COPY pom.xml /usr/src/app
+RUN mvn -f /usr/src/app/pom.xml clean package
+
+FROM adoptopenjdk:11-jre-hotspot as layers
+WORKDIR application
+ARG JAR_FILE=/usr/src/app/target/*.jar
+COPY --from=builder ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar application.jar extract
+
+FROM adoptopenjdk:11-jre-hotspot as runtime
+WORKDIR application
+COPY --from=layers application/dependencies/ ./
+COPY --from=layers application/snapshot-dependencies/ ./
+COPY --from=layers application/resources/ ./
+COPY --from=layers application/application/ ./
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]

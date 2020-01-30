@@ -1,0 +1,12 @@
+#@ load("@ytt:data", "data")
+
+#@ if/end data.values.image.build:
+---
+apiVersion: kbld.k14s.io/v1alpha1
+kind: Sources
+sources:
+- image: gshipley/wildwest:latest
+  path: .
+  docker:
+    build:
+      file: "docker/Dockerfile.outerloop"

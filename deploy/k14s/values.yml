@@ -1,0 +1,12 @@
+#@data/values
+---
+namespace:
+  name: wildwest
+  create: true
+replicas: 1
+image: 
+  name: gshipley/wildwest:latest
+  build: false
+  push: true
+  push_repo: registry.test:5000/wildwest
+destructive: true

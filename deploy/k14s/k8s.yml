@@ -1,0 +1,74 @@
+#@ load("@ytt:data", "data")
+
+#@ def destructive_role(destructive):
+#@   if destructive:
+#@     return "edit"
+#@   else:
+#@     return "view"
+#@   end
+#@ end
+
+#@ if data.values.namespace.create:
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: #@ data.values.namespace.name
+#@ end
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wildwest
+  #@ if/end data.values.namespace.create:
+  namespace: #@ data.values.namespace.name
+spec:
+  replicas: #@ data.values.replicas
+  selector:
+    matchLabels:
+      app: wildwest
+  template:
+    metadata:
+      labels:
+        app: wildwest
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: wildwest
+        image: #@ data.values.image.name
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: wildwest
+  #@ if/end data.values.namespace.create:
+  namespace: #@ data.values.namespace.name
+  labels:
+    app: wildwest
+spec:
+  type: NodePort
+  ports:
+    - name: wildwest
+      port: 8080
+  selector:
+    app: wildwest
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wild-west-role
+  #@ if/end data.values.namespace.create:
+  namespace: #@ data.values.namespace.name
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: #@ destructive_role(data.values.destructive)
+subjects:
+  - kind: ServiceAccount
+    name: default
+    
