@@ -7,6 +7,8 @@
 ---
 apiVersion: kbld.k14s.io/v1alpha1
 kind: ImageDestinations
+metadata:
+  name: wildwest
 destinations:
 - image: gshipley/wildwest:latest
   #@ if not data.values.image.push_repo or len(data.values.image.push_repo) == 0:
