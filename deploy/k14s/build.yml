@@ -9,4 +9,4 @@ sources:
   path: .
   docker:
     build:
-      file: "docker/Dockerfile.outerloop"
+      file: #@ data.values.dockerfile

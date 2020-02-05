@@ -4,3 +4,4 @@ target
 .factorypath
 .project
 .settings
+.odo/odo-file-index.json

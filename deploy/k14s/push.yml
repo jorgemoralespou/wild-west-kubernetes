@@ -3,7 +3,7 @@
 #@ load("@ytt:assert", "assert")
 
 
-#@ if/end data.values.image.push:
+#@ if/end data.values.image.build:
 ---
 apiVersion: kbld.k14s.io/v1alpha1
 kind: ImageDestinations

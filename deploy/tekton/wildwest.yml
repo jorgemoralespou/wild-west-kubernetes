@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wildwest
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: wildwest-git
+spec:
+  type: git
+  params:
+    - name: revision
+      value: development
+    - name: url
+      value: https://github.com/jorgemoralespou/wild-west-kubernetes
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: wildwest-image
+spec:
+  type: image
+  params:
+    - name: url
+      value: registry.test:5000/wildwest/wild-west-kubernetes
+---
+# https://raw.githubusercontent.com/tektoncd/catalog/master/buildah/buildah.yaml
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: buildah
+spec:
+  inputs:
+    params:
+    - name: BUILDER_IMAGE
+      description: The location of the buildah builder image.
+      default: quay.io/buildah/stable:v1.11.0
+    - name: DOCKERFILE
+      description: Path to the Dockerfile to build.
+      default: ./Dockerfile
+    - name: CONTEXT
+      description: Path to the directory to use as context.
+      default: .
+    - name: TLSVERIFY
+      description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS registry)
+      default: "true"
+
+    resources:
+    - name: source
+      type: git
+
+  outputs:
+    resources:
+    - name: image
+      type: image
+
+  steps:
+  - name: build
+    image: $(inputs.params.BUILDER_IMAGE)
+    workingDir: /workspace/source
+    command: ['buildah', 'bud', '--tls-verify=$(inputs.params.TLSVERIFY)', '--layers', '-f', '$(inputs.params.DOCKERFILE)', '-t', '$(outputs.resources.image.url)', '$(inputs.params.CONTEXT)']
+    volumeMounts:
+    - name: varlibcontainers
+      mountPath: /var/lib/containers
+    securityContext:
+      privileged: true
+
+  - name: push
+    image: $(inputs.params.BUILDER_IMAGE)
+    workingDir: /workspace/source
+    command: ['buildah', 'push', '--tls-verify=$(inputs.params.TLSVERIFY)', '$(outputs.resources.image.url)', 'docker://$(outputs.resources.image.url)']
+    volumeMounts:
+    - name: varlibcontainers
+      mountPath: /var/lib/containers
+    securityContext:
+      privileged: true
+
+  volumes:
+  - name: varlibcontainers
+    emptyDir: {}
+---
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: build-wildwest-image
+spec:
+  serviceAccountName: wildwest
+  taskRef:
+    name: buildah
+  inputs:
+    resources:
+      - name: source
+        resourceRef:
+          name: wildwest-git
+    params:
+      - name: DOCKERFILE
+        value: docker/Dockerfile.outerloop
+      - name: TLSVERIFY
+        value: "false"
+  outputs:
+    resources:
+      - name: image
+        resourceRef:
+          name: wildwest-image

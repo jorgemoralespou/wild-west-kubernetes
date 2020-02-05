@@ -1,6 +1,10 @@
 package com.vmware.wildwest.helpers;
 
 import com.vmware.wildwest.models.PlatformObject;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
@@ -11,7 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Component
 public class PlatformObjectHelper {
+
+	@Value("${NAMESPACE:wildwest}")
+	private String namespace;
 
 	private ApiClient client;
 	private CoreV1Api api;
@@ -42,14 +50,16 @@ public class PlatformObjectHelper {
 	public PlatformObject getRandomPlatformObject() {
 		List<PlatformObject> theObjects = this.getPlatformObjects();
 		
-
-		return theObjects.get(new Random().nextInt(theObjects.size()));
+		if (theObjects.size()>0)
+			return theObjects.get(new Random().nextInt(theObjects.size()));
+		else
+			return null;
 	}
 
 	private List<PlatformObject> getPods() {
 		ArrayList<PlatformObject> thePods = new ArrayList<>();
 		try {
-			V1PodList pods = api.listNamespacedPod("wildwest", null, null, null, null, null, null, null, null, null);
+			V1PodList pods = api.listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null);
 			for (V1Pod item : pods.getItems()) {
 				thePods.add(new PlatformObject(item.getMetadata().getUid(), item.getMetadata().getName(), "POD"));
 			}
@@ -63,7 +73,7 @@ public class PlatformObjectHelper {
 	private List<PlatformObject> getPVs() {
 		ArrayList<PlatformObject> thePVs = new ArrayList<>();
 		try {
-			V1PersistentVolumeClaimList pvs = api.listNamespacedPersistentVolumeClaim("wildwest", true, null,null,null,null,null
+			V1PersistentVolumeClaimList pvs = api.listNamespacedPersistentVolumeClaim(namespace, true, null,null,null,null,null
 			,null,null,false);
 
 			for (V1PersistentVolumeClaim item : pvs.getItems()) {
@@ -78,7 +88,7 @@ public class PlatformObjectHelper {
 	private List<PlatformObject> getServices() {
 		ArrayList<PlatformObject> theServices = new ArrayList<>();
 		try {
-			V1ServiceList services = api.listNamespacedService("wildwest", true, null, null, null, null, null, null, null, null);
+			V1ServiceList services = api.listNamespacedService(namespace, true, null, null, null, null, null, null, null, null);
 
 			for (V1Service item : services.getItems()) {
 				theServices.add(new PlatformObject(item.getMetadata().getUid(), item.getMetadata().getName(), "SERVICE"));
@@ -95,7 +105,7 @@ public class PlatformObjectHelper {
 			switch (objectType) {
 				case "POD":
 					//client.pods().withName(objectName).delete();
-					api.deleteNamespacedPod(objectName, "wildwest", null, null, null, null, null, null);
+					api.deleteNamespacedPod(objectName, namespace, null, null, null, null, null, null);
 					break;
 				case "SERVICE":
 					//client.builds().withName(objectName).delete();

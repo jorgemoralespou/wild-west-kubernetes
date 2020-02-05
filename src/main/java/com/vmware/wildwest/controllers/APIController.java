@@ -20,6 +20,9 @@ public class APIController {
 	@Autowired
 	private GameController gameController;
 
+	@Autowired
+	private PlatformObjectHelper helper;
+
 	@RequestMapping("/score")
 	public Score getScore(@RequestParam(value = "gameID") String gameID) {
 		return this.gameController.getGame(gameID).getScore();
@@ -37,13 +40,11 @@ public class APIController {
 	
 	@RequestMapping("/objects")
 	public List<PlatformObject> getPlatformObjects() {
-		PlatformObjectHelper helper = new PlatformObjectHelper();
 		return helper.getPlatformObjects();
 	}
 
 	@RequestMapping("/getRandomObject")
 	public PlatformObject getRandomPlatformObject() {
-		PlatformObjectHelper helper = new PlatformObjectHelper();
 		return helper.getRandomPlatformObject();
 	}
 
@@ -54,7 +55,6 @@ public class APIController {
 							@RequestParam(value = "objectType") String objectType,
 							@RequestParam(value = "objectName") String objectName) {
 
-		PlatformObjectHelper helper = new PlatformObjectHelper();
 		helper.deletePlatformObject(gameID, objectID, objectType, objectName);
 	}
 

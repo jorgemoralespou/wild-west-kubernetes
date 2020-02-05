@@ -51,7 +51,19 @@ ytt -f deploy/k14s --data-value-yaml namespace.name=k8s-wildwest | kapp deploy -
 If you're in the building process, and you want to use the image you're building in the the deployment, [kbld](https://get-kbld.io/) is your tool. If you have *kbld* installed, you can use it very easily:
 
 ```bash
-ytt -f deploy/k14s --data-value-yaml namespace.name=k8s-wildwest | kbld -f - | kapp deploy -y --diff-changes -a wild-west -f-
+ytt -f deploy/k14s --data-value-yaml namespace.name=k8s-wildwest  --data-value-yaml image.build=true | kbld -f - | kapp deploy -y --diff-changes -a wild-west -f-
+```
+
+If you want to build your container by compiling locally your java application (faster), use:
+
+```bash
+mvn package
+ytt -f deploy/k14s --data-value-yaml namespace.name=k8s-wildwest  --data-value-yaml image.build=true --data-value-yaml dockerfile=docker/Dockerfile.innerloop | kbld -f - | kapp deploy -y --diff-changes -a wild-west -f-
+```
+
+If you don't have maven locally, or you want to build your application archive (.jar file) it in a container, use:
+```bash
+ytt -f deploy/k14s --data-value-yaml namespace.name=k8s-wildwest  --data-value-yaml image.build=true --data-value-yaml dockerfile=docker/Dockerfile.outerloop | kbld -f - | kapp deploy -y --diff-changes -a wild-west -f-
 ```
 
 ### Delete your application
@@ -90,3 +102,33 @@ docker tag k8s/wildwest:outerloop k8s/wildwest:latest
 mvn clean package spring-boot:build-image
 docker tag docker.io/library/wildwest:1.0 k8s/wildwest:latest
 ```
+
+
+
+## Install and use tekton pipelines
+
+### Install tekton
+Tekton will install all of it's namespaced components into the tekton-pipelines namespace, the rest will be installed clusterwide.
+
+```bash
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+kubectl apply -f https://github.com/tektoncd/dashboard/releases/download/v0.4.1/dashboard_latest_release.yaml
+kubectl apply -f -<<EOF
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tekton-dashboard
+  namespace: tekton-pipelines
+spec:
+  rules:
+  - host: dashboard.tekton.test
+    http:
+      paths:
+      - backend:
+          serviceName: tekton-dashboard
+          servicePort: 9097
+EOF
+kubectl apply --filename https://storage.googleapis.com/tekton-releases/triggers/latest/release.yaml
+```
+
+There's a [catalog of Tekton tasks](https://github.com/tektoncd/catalog) with very useful and reusable tasks.

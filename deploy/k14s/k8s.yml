@@ -36,6 +36,11 @@ spec:
       - name: wildwest
         image: #@ data.values.image.name
         imagePullPolicy: Always
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         ports:
         - containerPort: 8080
 
@@ -72,3 +77,21 @@ subjects:
   - kind: ServiceAccount
     name: default
     
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-wildwest
+  #@ if/end data.values.namespace.create:
+  namespace: #@ data.values.namespace.name
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: #@ data.values.host
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: wildwest
+          servicePort: 8080
