@@ -1,7 +1,9 @@
 FROM maven:3.6.2-jdk-11 as builder
-COPY src /usr/src/app/src
-COPY pom.xml /usr/src/app
-RUN mvn -f /usr/src/app/pom.xml clean package
+WORKDIR /usr/src/app/
+COPY pom.xml .
+RUN mvn -e -B dependency:resolve
+COPY src ./src
+RUN mvn -e -B package
 
 FROM adoptopenjdk:11-jre-hotspot as layers
 WORKDIR application

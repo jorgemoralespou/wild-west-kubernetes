@@ -5,3 +5,5 @@ target
 .project
 .settings
 .odo/odo-file-index.json
+.idea
+*.iml

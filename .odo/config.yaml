@@ -1,0 +1,16 @@
+kind: LocalConfig
+apiversion: odo.openshift.io/v1alpha1
+ComponentSettings:
+  Type: java
+  SourceLocation: target/wildwest-1.0.jar
+  SourceType: binary
+  Ports:
+  - 8080/TCP
+  - 8443/TCP
+  - 8778/TCP
+  Application: app
+  Project: odo
+  Name: wildwest
+  Url:
+  - Name: wildwest-8080
+    Port: 8080
