@@ -1,13 +1,16 @@
 FROM adoptopenjdk:11-jre-hotspot as layers
-WORKDIR application
+WORKDIR /application
 ARG JAR_FILE=target/*.jar
+RUN mkdir dependencies snapshot-dependencies resources application
 COPY ${JAR_FILE} application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
 FROM adoptopenjdk:11-jre-hotspot as runtime
-WORKDIR application
-COPY --from=layers application/dependencies/ ./
-COPY --from=layers application/snapshot-dependencies/ ./
-COPY --from=layers application/resources/ ./
-COPY --from=layers application/application/ ./
+USER 1000
+WORKDIR /application
+COPY --from=layers /application/spring-boot-loader/ ./
+COPY --from=layers /application/dependencies/ ./
+COPY --from=layers /application/snapshot-dependencies/ ./
+COPY --from=layers /application/resources/ ./
+COPY --from=layers /application/application/ ./
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]

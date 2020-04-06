@@ -7,3 +7,5 @@ target
 .odo/odo-file-index.json
 .idea
 *.iml
+.DS_Store
+.stignore

@@ -1,0 +1,4 @@
+kubectl create ns k8s-wildwest
+kubectl create secret docker-registry registry-failk8s-com --docker-server=registry.failk8s.com --docker-username=admin --docker-password=admin123! --docker-email=none@example.com -n k8s-wildwest
+kubectl patch serviceaccount/default -n k8s-wildwest -p '{"imagePullSecrets": [{"name": "registry-failk8s-com"}]}'
+ytt -f deploy/k14s --data-value-yaml namespace.name=k8s-wildwest  --data-value-yaml  image.push_repo=registry.failk8s.com/wildwest --data-value-yaml image.build=true | kbld -f - | kapp deploy -y --diff-changes -a wild-west -n default -f-

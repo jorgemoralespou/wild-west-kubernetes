@@ -32,7 +32,32 @@ spec:
               fieldPath: metadata.namespace
         ports:
         - containerPort: 8080
-
+      readinessProbe:
+        initialDelaySeconds: 1
+        periodSeconds: 3
+        timeoutSeconds: 1
+        failureThreshold: 1
+        successThreshold: 1
+        httpGet:
+          path: /actuator/health/readiness
+          port: 8080
+          scheme: HTTP
+      livenessProbe:
+        initialDelaySeconds: 1
+        periodSeconds: 3
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+        httpGet:
+          path: /actuator/health/liveness
+          port: 8080
+          scheme: HTTP
+      startupProbe:
+        httpGet:
+          path: /actuator/ping
+          port: 8080
+        failureThreshold: 5
+        periodSeconds: 1
 ---
 
 apiVersion: v1

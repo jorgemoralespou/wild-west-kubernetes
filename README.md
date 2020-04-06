@@ -74,13 +74,21 @@ kapp delete -a wild-west
 ```
 
 ## Build your container
-There's 3 ways to build your container images:
+There's 4 ways to build your container image:
 
+* Build your application locally using maven and the SpringBoot Cloud Native Buildpacks (CNB).
 * Build your application locally and then create the container image with a Docker multi-stage build. This will mostly be used for local development as it benefits from maven cache
 * Build your application and container image with a Docker multi-stage build. This will be slower, but it doesn't depend on having maven installed.
 * Build your application and image with a Buildpack
 
-### Option 1: Inner loop build
+### Option 1: Spring-Boot maven build plugin
+
+```
+mvn package spring-boot:build-image
+docker tag k8s/wildwest:cnb k8s/wildwest:latest
+```
+
+### Option 2: Inner loop build
 
 ```
 mvn package
@@ -88,7 +96,7 @@ docker build -t "k8s/wildwest:innerloop" -f docker/Dockerfile.innerloop .
 docker tag k8s/wildwest:innerloop k8s/wildwest:latest
 ```
 
-### Option 2: Outer loop build
+### Option 3: Outer loop build
 
 ```
 docker build -t "k8s/wildwest:outerloop" -f docker/Dockerfile.outerloop .
@@ -96,7 +104,7 @@ docker tag k8s/wildwest:outerloop k8s/wildwest:latest
 ```
 
 
-### Option 3: Inner/Outer loop build
+### Option 4: Inner/Outer loop build
 
 ```
 mvn clean package spring-boot:build-image
@@ -104,10 +112,22 @@ docker tag docker.io/library/wildwest:1.0 k8s/wildwest:latest
 ```
 
 
-
 ## Install and use tekton pipelines
 
-### Install tekton
+### Install tekton from repo
+
+This will install:
+* tekton release 0.10.1
+* tekton triggers 0.2.1
+* tekton dashboard 0.4.1
+
+And will make the dashboard available at: [dashboard.tekton.test](dashboard.tekton.test)
+
+```bash
+kapp deploy -a tekton -f deploy/tekton/release.yml -y -n default
+```
+
+### Install tekton from upstream
 Tekton will install all of it's namespaced components into the tekton-pipelines namespace, the rest will be installed clusterwide.
 
 ```bash
@@ -132,3 +152,25 @@ kubectl apply --filename https://storage.googleapis.com/tekton-releases/triggers
 ```
 
 There's a [catalog of Tekton tasks](https://github.com/tektoncd/catalog) with very useful and reusable tasks.
+
+### Install the wildwest pipeline
+To deploy an instance of the pipeline and associated resources:
+
+```bash
+kapp deploy -a wilwest-pipeline -f deploy/tekton/wildwest.yml
+```
+
+If you want to use a different namespace than the default (k8s-wildwest):
+
+```bash
+kapp deploy -a wilwest-pipeline -f deploy/tekton/wildwest.yml -n wildwest
+```
+
+### Start the pipeline
+In interactive mode:
+
+```bash
+tkn pipeline start build-wildwest-image
+```
+
+
