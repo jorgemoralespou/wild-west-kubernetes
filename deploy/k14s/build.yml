@@ -5,7 +5,7 @@
 apiVersion: kbld.k14s.io/v1alpha1
 kind: Sources
 sources:
-- image: gshipley/wildwest:latest
+- image: quay.io/jorgemoralespou/wildwest:development
   path: .
   docker:
     build:

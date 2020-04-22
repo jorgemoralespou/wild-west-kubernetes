@@ -23,7 +23,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
       - name: wildwest
-        image: gshipley/wildwest:latest
+        image: quay.io/jorgemoralespou/wildwest:development
         imagePullPolicy: Always
         env:
         - name: NAMESPACE

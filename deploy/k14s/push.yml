@@ -8,7 +8,7 @@
 apiVersion: kbld.k14s.io/v1alpha1
 kind: ImageDestinations
 destinations:
-- image: gshipley/wildwest:latest
+- image: quay.io/jorgemoralespou/wildwest:development
   #@ if not data.values.image.push_repo or len(data.values.image.push_repo) == 0:
   #@   assert.fail("Expected image.push_repo to be non-empty. Example: docker.io/dkalinin/k8s-simple-app")
   #@ end

@@ -5,7 +5,7 @@ namespace:
   create: true
 replicas: 1
 image: 
-  name: gshipley/wildwest:latest
+  name: quay.io/jorgemoralespou/wildwest:development
   build: false
   push_repo: registry.test:5000/wildwest
 destructive: false
