@@ -63,12 +63,6 @@ spec:
             path: /actuator/health/liveness
             port: 8080
             scheme: HTTP
-        startupProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8080
-          failureThreshold: 5
-          periodSeconds: 1
 ---
 
 apiVersion: v1
